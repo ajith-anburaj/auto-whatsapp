@@ -1,7 +1,10 @@
 from time import sleep
 
+import pendulum
+
 from whatsapp.WhatsApp import WhatsApp
 import whatsapp.Constants as Constants
+from scheduler.Processor import Processor
 import config
 
 driver_config = {
@@ -12,38 +15,44 @@ driver_config = {
 }
 
 
-def log_in():
-    driver_config_head = driver_config
-    driver_config['driver_headless'] = False
-    client_login = WhatsApp(driver_config=driver_config_head)
-    client_login.open_whats_app_web()
-    sleep(5)
-    if client_login.is_logged_in():
-        print('Login Successful')
-        client_login.close_whats_app()
-        return True
-    else:
-        print('Login unsuccessful')
-        client_login.close_whats_app()
-        return False
-
-
-def interact_with_whats_app():
-    client_headless = WhatsApp(driver_config)
-    client_headless.open_whats_app_web()
-    print(client_headless.send_message('ME', 'Testing', Constants.TEXT))
-    client_headless.close_whats_app()
+def send_message(args, kwargs):
+    data = kwargs['kwargs']['data']
+    client.send_message(data['contact'], data['message'], data['type'])
+    print(
+        f'scheduled {pendulum.from_timestamp(data["timeInfo"]["schedule_time"]).to_datetime_string()} sent {pendulum.now().to_datetime_string()}')
 
 
 if __name__ == '__main__':
     client = WhatsApp(driver_config)
-    is_logged_in = client.is_logged_in()
-    client.close_whats_app()
-    if is_logged_in:
-        interact_with_whats_app()
-    else:
-        if log_in():
-            interact_with_whats_app()
-        else:
-            print('Please try again later')
-
+    client.open_whats_app_web()
+    sleep(10)
+    scheduler = Processor()
+    task_details = {
+        'contact': 'ME',
+        'message': 'Testing please ignore',
+        'type': Constants.TEXT,
+        'recurring': 'no',
+        'timeInfo': {
+            'unit': 'minute',
+            'value': 4
+        }
+    }
+    task_details1 = {
+        'contact': 'ME',
+        'message': 'Testing please ignore!!!!',
+        'type': 'text',
+        'recurring': 'yes',
+        'timeInfo': {
+            'unit': 'minute',
+            'value': 2
+        }
+    }
+    scheduler.store_task_info(task_info=task_details)
+    scheduler.store_task_info(task_info=task_details1)
+    sub = scheduler.get_subscriber()
+    sub.subscribe('task', send_message)
+    while True:
+        if pendulum.now().second == 0 or pendulum.now() == 1:
+            break
+        sleep(1)
+    scheduler.start()

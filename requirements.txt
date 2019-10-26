@@ -1,2 +1,4 @@
+pendulum
+redis
 selenium==3.141.0
 urllib3==1.25.6
