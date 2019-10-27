@@ -7,7 +7,7 @@ from common.helper import convert_to_local_ts
 
 
 def gen_key():
-    return f"{os.getlogin()}:{str(uuid4())}"
+    return f'{os.environ["USER"]}:{str(uuid4())}'
 
 
 def reset_seconds(time):

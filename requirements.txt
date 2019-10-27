@@ -1,3 +1,4 @@
+dotenv
 PyYAML
 pendulum
 redis

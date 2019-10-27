@@ -13,6 +13,9 @@ from scheduler.Pub_Sub import Provider
 from scheduler.Scheduler import Scheduler
 from whatsapp.WhatsApp import WhatsApp
 from common.helper import idle
+from common.load_env import load_env
+
+load_env()
 
 driver_config = {
     "binary_location": config.binary_location,
