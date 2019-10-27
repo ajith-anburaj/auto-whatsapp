@@ -1,3 +1,4 @@
+PyYAML
 pendulum
 redis
 selenium==3.141.0

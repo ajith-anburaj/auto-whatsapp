@@ -1,0 +1,29 @@
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: simple
+    filename: /Users/ajith.a/PycharmProjects/auto-whatsapp/logs/app.log
+    maxBytes: 5120
+    backupCount: 5
+loggers:
+  production:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  dev:
+    level: DEBUG
+    handlers: [console, file]
+    propagate: false
+root:
+  level: INFO
+  handlers: [console]

@@ -11,7 +11,7 @@ class Provider:
         if event in self.subscribers:
             for subscribers in self.subscribers[event]:
                 for subscriber in self.subscribers[event][subscribers]:
-                    subscriber(args, kwargs)
+                    subscriber(*args, **kwargs)
 
     def subscribe(self, sub_id, event, callback):
         self.subscribers.setdefault(event, {}).setdefault(sub_id, []).append(callback)

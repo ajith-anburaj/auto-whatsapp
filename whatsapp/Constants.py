@@ -1,3 +1,3 @@
-TEXT = 'text'
-MEDIA = 'media'
-FILE = 'file'
+TEXT = "text"
+MEDIA = "media"
+FILE = "file"

@@ -1,5 +1,5 @@
-import heapq
 import datetime
+import heapq
 from dataclasses import dataclass
 
 
@@ -13,7 +13,6 @@ class Node:
 
 
 class Heap:
-
     def __init__(self, nodes):
         self.heap = nodes
         heapq.heapify(nodes)
