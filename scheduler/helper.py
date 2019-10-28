@@ -26,10 +26,19 @@ def process_schedule_time(task_info):
     return task_info
 
 
+def merge_dictionaries(original, update):
+    for key, value in update.items():
+        if isinstance(value, dict):
+            merge_dictionaries(original[key], value)
+        else:
+            original[key] = value
+    return original
+
+
 def time_difference_now(ts):
     task_time = convert_to_local_ts(ts)
     current = pendulum.now().set(second=0)
-    diff = current.diff(task_time).in_minutes()
+    diff = current.diff(task_time, False).in_minutes()
     return (
         0
         if current.to_datetime_string() == task_time.to_datetime_string()

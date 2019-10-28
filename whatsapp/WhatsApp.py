@@ -5,7 +5,7 @@ from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-import whatsapp.Constants as Constants
+import whatsapp.constants as constants
 import whatsapp.config as config
 from common.helper import is_valid_phone_number
 from .SeleniumWrapper import SeleniumWrapper
@@ -138,9 +138,9 @@ class WhatsApp:
     def send_message(self, contact, message, message_type):
         self.__go_to_main_window()
         message_to_handler = {
-            Constants.TEXT: self.__handle_text_message,
-            Constants.MEDIA: self.__handle_media_message,
-            Constants.FILE: self.__handle_file_messages,
+            constants.TEXT: self.__handle_text_message,
+            constants.MEDIA: self.__handle_media_message,
+            constants.FILE: self.__handle_file_messages,
         }
         if self.__select_contact(contact):
             if message_type in message_to_handler:

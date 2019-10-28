@@ -18,8 +18,9 @@ class Calender:
         scopes = ['https://www.googleapis.com/auth/calendar']
         credentials_file = f'{os.getenv("PROJECT_DIRECTORY")}/config/credentials.json'
         credentials = None
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
+        token_path = f'{os.getenv("PROJECT_DIRECTORY")}/calender/token.pickle'
+        if os.path.exists(token_path):
+            with open(token_path, 'rb') as token:
                 credentials = pickle.load(token)
         if not credentials or not credentials.valid:
             if credentials and credentials.expired and credentials.refresh_token:
@@ -28,9 +29,9 @@ class Calender:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     credentials_file, scopes=scopes)
                 credentials = flow.run_local_server(port=0)
-            with open('token.pickle', 'wb') as token:
+            with open(token_path, 'wb') as token:
                 pickle.dump(credentials, token)
-        service = build('calendar', 'v3', credentials=credentials)
+        service = build('calendar', 'v3', credentials=credentials, cache_discovery=False)
         return service
 
     def get_calenders(self):
@@ -41,7 +42,7 @@ class Calender:
         for calendar in calendars:
             calendars_summary.append(summary(
                 id=calendar['id'], description=calendar['summary'],
-                primary=True if calendar.get['primary'] else False
+                primary=True if calendar.get('primary') else False
             ))
         return calendars_summary
 
@@ -61,4 +62,4 @@ class Calender:
         for event in events:
             start = event['start'].get('dateTime', event['start'].get('date'))
             events_summary.append(event_summary(startDate=start, description=event['summary']))
-        return event_summary
+        return events_summary
