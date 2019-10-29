@@ -43,9 +43,25 @@ def send_message(_, kwargs):
     logger.info(f'scheduled at {scheduled_time} sent at {current_time}')
 
 
+def scheduler_suspend(_, kwargs):
+    client.close_whats_app()
+    logger.info(f'Scheduler sleeping for {kwargs["data"] // 60} minutes')
+
+
+def scheduler_wake_up(_, kwargs):
+    launch_whats_app()
+    logger.info('Scheduler wake up')
+
+
+def subscribe_events(sub):
+    sub.subscribe("task", send_message)
+    sub.subscribe("sleep", scheduler_suspend)
+    sub.subscribe("wake", scheduler_wake_up)
+
+
 def start_scheduler(scheduler):
     sub = scheduler.get_subscriber()
-    sub.subscribe("task", send_message)
+    subscribe_events(sub)
     while True:
         if pendulum.now().second == 0 or pendulum.now() == 1:
             break

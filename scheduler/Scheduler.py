@@ -7,6 +7,7 @@ from scheduler.Heap import Node, Heap
 from scheduler.Pub_Sub import Publisher, Subscriber
 from scheduler.Redis import Redis
 from common.helper import idle
+from scheduler.Suspend import Suspend
 
 
 class Scheduler:
@@ -18,6 +19,7 @@ class Scheduler:
         self.provider = provider
         self.publisher = Publisher(self.provider)
         self.no_task = True
+        self.suspend = Suspend()
 
     def get_user_tasks(self):
         pattern = f'{Scheduler.user_pattern}*'
@@ -38,15 +40,12 @@ class Scheduler:
         return Heap(nodes=nodes)
 
     def store_task_info(self, task_info):
-        key = None
+        key = gen_key() if "id" not in task_info else task_info["id"]
+        task_info["id"] = key
         task_info = process_schedule_time(task_info)
-        if "id" not in task_info:
-            key = gen_key()
-            task_info["id"] = key
-        else:
-            key = task_info["id"]
         self.redis.client.set(key, json.dumps(task_info))
         self.heap.push(Node(key, task_info["timeInfo"]["schedule_time"]))
+        self.wake_up()
         return task_info
 
     def delete_all_tasks(self):
@@ -69,6 +68,7 @@ class Scheduler:
             self.delete_task_by_id(task_id=task_id, top_element=False)
             self.redis.client.set(updated_task_info['id'], json.dumps(updated_task_info))
             self.heap.push(Node(id=task_id, ts=updated_task_info))
+            self.wake_up()
             return updated_task_info
         else:
             return False
@@ -96,6 +96,16 @@ class Scheduler:
         if task_info["recurring"] == "yes":
             self.store_task_info(task_info=task_info)
 
+    def wake_up(self):
+        if self.suspend.is_sleeping():
+            self.suspend.wake()
+            self.publisher.publish('wake')
+
+    def sleep(self, diff):
+        sleep_interval = 60 * 15 if diff < 30 else diff - (60 * 15)
+        self.publisher.publish('sleep', data=sleep_interval)
+        self.suspend.sleep(sleep_interval)
+
     def process_tasks(self):
         try:
             task = self.get_next_task()
@@ -109,7 +119,7 @@ class Scheduler:
                 self.publish_task(task_info=task)
             elif diff > 15:
                 logger.info(f'next task at {next_task}')
-                idle(15 * 60)
+                self.sleep(diff)
             elif diff > 1:
                 logger.debug(f'next task at {next_task}')
                 idle(20)
@@ -117,7 +127,7 @@ class Scheduler:
                 logger.debug(f'next task at {next_task} scheduler')
                 idle(2)
         except IndexError:
-            idle(20, 'scheduler')
+            self.sleep(60 * 60 * 24)
 
     def start(self):
         while True:
